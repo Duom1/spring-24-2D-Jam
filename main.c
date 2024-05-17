@@ -53,27 +53,31 @@ bool ColorEqual(Color color1, Color color2) {
 
 void updateDrawFrame(void) {
   updateSizeAndScale();
-  if (IsKeyPressed(KEY_ZERO) && IsKeyDown(KEY_LEFT_CONTROL)) {
-    SetWindowSize(OGscreenSize.x * screenScale.y, screenSize.y);
-  }
-  if (IsKeyPressed(KEY_MINUS) && IsKeyDown(KEY_LEFT_CONTROL)) {
-    Vector2AddValue(tileSize, 10);
-  } else if (IsKeyPressed(KEY_KP_ENTER) && IsKeyDown(KEY_LEFT_CONTROL)) {
-    Vector2AddValue(tileSize, -10);
+  if (IsKeyDown(KEY_LEFT_CONTROL)) {
+    if (IsKeyPressed(KEY_ZERO)) {
+      SetWindowSize(OGscreenSize.x * screenScale.y, screenSize.y);
+    }
+    if (IsKeyPressed(KEY_MINUS)) {
+      tileSize.x -= 10;
+      tileSize.y -= 10;
+    } else if (IsKeyPressed(KEY_EQUAL)) {
+      tileSize.x += 10;
+      tileSize.y += 10;
+    }
   }
   BeginDrawing();
   ClearBackground(RAYWHITE);
-  // for (int i = 0; i < MAP_HEIGHT; ++i) {
-  //   for (int k = 0; k < MAP_WIDTH; ++k) {
-  //     int tile = map[i][k];
-  //     DrawTexturePro(textures.tiles, tileLookUp[tile],
-  //                    (Rectangle){tileSize.x * i * screenScale.x,
-  //                                tileSize.y * k * screenScale.y,
-  //                                tileSize.x * screenScale.x,
-  //                                tileSize.y * screenScale.y},
-  //                    ZERO_VECTOR2, 0.0, WHITE);
-  //   }
-  // }
+  for (int i = 0; i < map.size.y; ++i) {
+    for (int k = 0; k < map.size.x; ++k) {
+      int tile = map.data[(int)(k + i * map.size.x)];
+      DrawTexturePro(textures.tiles, tileLookUp[tile],
+                     (Rectangle){tileSize.x * i * screenScale.x,
+                                 tileSize.y * k * screenScale.y,
+                                 tileSize.x * screenScale.x,
+                                 tileSize.y * screenScale.y},
+                     ZERO_VECTOR2, 0.0, WHITE);
+    }
+  }
   DrawFPS(10, 10);
   EndDrawing();
 }
@@ -94,10 +98,12 @@ int main(void) {
   map.size.y = mapImage.height;
   map.data = malloc(sizeof(int) * mapImage.height * mapImage.height);
   for (int i = 0; i < mapImage.height; ++i) {
-    for (int k = 0; k < mapImage.width; ++i) {
+    for (int k = 0; k < mapImage.width; ++k) {
       Color pc = GetImageColor(mapImage, i, k);
       if (ColorEqual(pc, (Color){0, 0, 255, 255}))
         map.data[k + i * mapImage.width] = TILE_WATER;
+      if (ColorEqual(pc, (Color){0, 255, 0, 255}))
+        map.data[k + i * mapImage.width] = TILE_DIRT;
     }
   }
   UnloadImage(mapImage);
