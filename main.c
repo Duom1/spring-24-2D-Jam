@@ -1,6 +1,5 @@
 #include <raylib.h>
 #include <raymath.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #ifdef PLATFORM_WEB
@@ -34,10 +33,15 @@ typedef struct {
   Vector2 size;
   int *data;
 } Map;
-
 Map map;
 
 Vector2 tileSize = {100, 100};
+
+typedef struct {
+  Vector2 pos;
+  int speed;
+} Player;
+Player player;
 
 void updateSizeAndScale(void) {
   screenSize.x = GetScreenWidth();
@@ -52,19 +56,31 @@ bool ColorEqual(Color color1, Color color2) {
 }
 
 void updateDrawFrame(void) {
+  // checking debug binds
   updateSizeAndScale();
-  if (IsKeyDown(KEY_LEFT_CONTROL)) {
+  if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) {
     if (IsKeyPressed(KEY_ZERO)) {
       SetWindowSize(OGscreenSize.x * screenScale.y, screenSize.y);
     }
-    if (IsKeyPressed(KEY_MINUS)) {
+    if (IsKeyPressed(KEY_LEFT_BRACKET)) {
       tileSize.x -= 10;
       tileSize.y -= 10;
-    } else if (IsKeyPressed(KEY_EQUAL)) {
+    } else if (IsKeyPressed(KEY_RIGHT_BRACKET)) {
       tileSize.x += 10;
       tileSize.y += 10;
     }
   }
+  // movement
+  if (IsKeyDown(KEY_W))
+    player.pos.y -= player.speed;
+  else if (IsKeyDown(KEY_S))
+    player.pos.y += player.speed;
+  if (IsKeyDown(KEY_A))
+    player.pos.x -= player.speed;
+  else if (IsKeyDown(KEY_D))
+    player.pos.x += player.speed;
+
+  // drawing
   BeginDrawing();
   ClearBackground(RAYWHITE);
   for (int i = 0; i < map.size.y; ++i) {
@@ -75,7 +91,7 @@ void updateDrawFrame(void) {
                                  tileSize.y * k * screenScale.y,
                                  tileSize.x * screenScale.x,
                                  tileSize.y * screenScale.y},
-                     ZERO_VECTOR2, 0.0, WHITE);
+                     player.pos, 0.0, WHITE);
     }
   }
   DrawFPS(10, 10);
@@ -108,6 +124,9 @@ int main(void) {
   }
   UnloadImage(mapImage);
 
+  player.pos = (Vector2){0, 0};
+  player.speed = 5;
+
 #ifdef PLATFORM_WEB
   emscripten_set_main_loop(updateDrawFrame, TARGET_FPS, 1);
 #else
@@ -117,6 +136,7 @@ int main(void) {
   }
 #endif
 
+  free(map.data);
   UnloadTexture(textures.tiles);
   CloseWindow();
 
