@@ -59,6 +59,7 @@ bool ColorEqual(Color color1, Color color2) {
 
 void updateDrawFrame(void) {
   static char vertDebugStr[120];
+  static char windowSizeStr[30];
   // checking debug binds
   updateSizeAndScale();
   if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) {
@@ -88,12 +89,14 @@ void updateDrawFrame(void) {
   strcpy(vertDebugStr, "");
   for (int i = 0; i < map.size.x; ++i) {
     char tmp[20];
-    sprintf(tmp, "%i, ", (int)(tileSize.x * i * screenScale.x));
+    int pos = (int)(tileSize.x * i * screenScale.x);
+    sprintf(tmp, "%i, ", pos);
     if (i % 20 == 0) {
       strcat(tmp, "\n");
     }
     strcat(vertDebugStr, tmp);
   }
+  sprintf(windowSizeStr, "%i, %i", (int)screenSize.x, (int)screenSize.y);
 
   // drawing
   BeginDrawing();
@@ -101,21 +104,24 @@ void updateDrawFrame(void) {
   for (int i = 0; i < map.size.y; ++i) {
     for (int k = 0; k < map.size.x; ++k) {
       int tile = map.data[(int)(k + i * map.size.x)];
-      DrawTexturePro(textures.tiles, tileLookUp[tile],
-                     (Rectangle){tileSize.x * i * screenScale.x,
-                                 tileSize.y * k * screenScale.y,
-                                 tileSize.x * screenScale.x,
-                                 tileSize.y * screenScale.y},
-                     player.pos, 0.0, WHITE);
+      Vector2 pos = {tileSize.x * i * screenScale.x,
+                     tileSize.y * k * screenScale.y};
+      if (tile == TILE_DIRT) {
+        DrawTexturePro(textures.tiles, tileLookUp[tile],
+                       (Rectangle){pos.x, pos.y, tileSize.x * screenScale.x,
+                                   tileSize.y * screenScale.y},
+                       player.pos, 0, WHITE);
+      }
     }
   }
   DrawFPS(10, 10);
-  DrawText(vertDebugStr, 10, 30, 10, BLACK);
+  DrawText(windowSizeStr, 10, 35, 20, BLACK);
+  DrawText(vertDebugStr, 10, 65, 10, BLACK);
   EndDrawing();
 }
 
 int main(void) {
-  // SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   InitWindow(screenSize.x, screenSize.y, "Rescue the vampire");
 
   // loading screen
@@ -141,7 +147,7 @@ int main(void) {
   UnloadImage(mapImage);
 
   player.pos = (Vector2){0, 0};
-  player.speed = 5;
+  player.speed = 10;
 
 #ifdef PLATFORM_WEB
   emscripten_set_main_loop(updateDrawFrame, TARGET_FPS, 1);
