@@ -60,8 +60,23 @@ bool ColorEqual(Color color1, Color color2) {
 void updateDrawFrame(void) {
   static char vertDebugStr[120];
   static char windowSizeStr[30];
-  static bool NRFull = false;
+  // static bool NRFull = false;
+
+  // #ifndef PLATFORM_WEB
+  //   if (NRFull) {
+  //     bool wasFull = IsWindowFullscreen();
+  //     ToggleFullscreen();
+  //     if (wasFull)
+  //       SetWindowSize(OGscreenSize.x, screenSize.y);
+  //     NRFull = false;
+  //   }
+  //   if (IsKeyPressed(KEY_F11)) {
+  //     NRFull = true;
+  //     SetWindowSize(1920, 1080);
+  //   }
+  // #endif /* ifndef PLATFORM_WEB */
   // checking debug binds
+  //
   updateSizeAndScale();
   if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) {
     if (IsKeyPressed(KEY_ZERO)) {
@@ -86,31 +101,28 @@ void updateDrawFrame(void) {
   else if (IsKeyDown(KEY_D))
     player.pos.x += player.speed;
 
-  // #ifndef PLATFORM_WEB
-  //   if (NRFull) {
-  //     bool wasFull = IsWindowFullscreen();
-  //     ToggleFullscreen();
-  //     if (wasFull)
-  //       SetWindowSize(OGscreenSize.x, screenSize.y);
-  //     NRFull = false;
-  //   }
-  //   if (IsKeyPressed(KEY_F11)) {
-  //     NRFull = true;
-  //     SetWindowSize(1920, 1080);
-  //   }
-  // #endif /* ifndef PLATFORM_WEB */
-
   // debug and stuff
   strcpy(vertDebugStr, "");
-  for (int i = 0; i < map.size.x; ++i) {
+  int prevPos = 0;
+  fprintf(stderr, "line: ");
+  for (int i = 1; i < map.size.x; ++i) {
     char tmp[20];
+
     int pos = (int)(tileSize.x * i * screenScale.x);
-    sprintf(tmp, "%i, ", pos);
-    if (i % 20 == 0) {
+    if (((pos - prevPos) - (int)(tileSize.x * screenScale.x)) > 0) {
+      fprintf(stderr, "dec ");
+      --pos;
+    }
+
+    sprintf(tmp, "%i, ", pos - prevPos - (int)(tileSize.x * screenScale.x));
+    if (i % 40 == 0) {
       strcat(tmp, "\n");
     }
     strcat(vertDebugStr, tmp);
+
+    prevPos = pos;
   }
+  fprintf(stderr, "\n");
   sprintf(windowSizeStr, "%i, %i", (int)screenSize.x, (int)screenSize.y);
 
   // drawing
@@ -121,12 +133,10 @@ void updateDrawFrame(void) {
       int tile = map.data[(int)(k + i * map.size.x)];
       Vector2 pos = {tileSize.x * i * screenScale.x,
                      tileSize.y * k * screenScale.y};
-      if (tile == TILE_DIRT) {
-        DrawTexturePro(textures.tiles, tileLookUp[tile],
-                       (Rectangle){pos.x, pos.y, tileSize.x * screenScale.x,
-                                   tileSize.y * screenScale.y},
-                       player.pos, 0, WHITE);
-      }
+      DrawTexturePro(textures.tiles, tileLookUp[tile],
+                     (Rectangle){pos.x, pos.y, tileSize.x * screenScale.x,
+                                 tileSize.y * screenScale.y},
+                     player.pos, 0, WHITE);
     }
   }
   DrawFPS(10, 10);
@@ -136,7 +146,7 @@ void updateDrawFrame(void) {
 }
 
 int main(void) {
-  // SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   InitWindow(screenSize.x, screenSize.y, "Rescue the vampire");
 
   // loading screen
