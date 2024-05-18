@@ -1,6 +1,8 @@
 #include <raylib.h>
 #include <raymath.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef PLATFORM_WEB
 #include <emscripten/emscripten.h>
@@ -56,6 +58,7 @@ bool ColorEqual(Color color1, Color color2) {
 }
 
 void updateDrawFrame(void) {
+  static char vertDebugStr[120];
   // checking debug binds
   updateSizeAndScale();
   if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) {
@@ -70,6 +73,7 @@ void updateDrawFrame(void) {
       tileSize.y += 10;
     }
   }
+
   // movement
   if (IsKeyDown(KEY_W))
     player.pos.y -= player.speed;
@@ -79,6 +83,17 @@ void updateDrawFrame(void) {
     player.pos.x -= player.speed;
   else if (IsKeyDown(KEY_D))
     player.pos.x += player.speed;
+
+  // debug and stuff
+  strcpy(vertDebugStr, "");
+  for (int i = 0; i < map.size.x; ++i) {
+    char tmp[20];
+    sprintf(tmp, "%i, ", (int)(tileSize.x * i * screenScale.x));
+    if (i % 20 == 0) {
+      strcat(tmp, "\n");
+    }
+    strcat(vertDebugStr, tmp);
+  }
 
   // drawing
   BeginDrawing();
@@ -95,11 +110,12 @@ void updateDrawFrame(void) {
     }
   }
   DrawFPS(10, 10);
+  DrawText(vertDebugStr, 10, 30, 10, BLACK);
   EndDrawing();
 }
 
 int main(void) {
-  SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+  // SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   InitWindow(screenSize.x, screenSize.y, "Rescue the vampire");
 
   // loading screen
