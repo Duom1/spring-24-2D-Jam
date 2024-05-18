@@ -60,6 +60,7 @@ bool ColorEqual(Color color1, Color color2) {
 void updateDrawFrame(void) {
   static char vertDebugStr[120];
   static char windowSizeStr[30];
+  static bool NRFull = false;
   // checking debug binds
   updateSizeAndScale();
   if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) {
@@ -75,7 +76,7 @@ void updateDrawFrame(void) {
     }
   }
 
-  // movement
+  // other user input
   if (IsKeyDown(KEY_W))
     player.pos.y -= player.speed;
   else if (IsKeyDown(KEY_S))
@@ -84,6 +85,20 @@ void updateDrawFrame(void) {
     player.pos.x -= player.speed;
   else if (IsKeyDown(KEY_D))
     player.pos.x += player.speed;
+
+  // #ifndef PLATFORM_WEB
+  //   if (NRFull) {
+  //     bool wasFull = IsWindowFullscreen();
+  //     ToggleFullscreen();
+  //     if (wasFull)
+  //       SetWindowSize(OGscreenSize.x, screenSize.y);
+  //     NRFull = false;
+  //   }
+  //   if (IsKeyPressed(KEY_F11)) {
+  //     NRFull = true;
+  //     SetWindowSize(1920, 1080);
+  //   }
+  // #endif /* ifndef PLATFORM_WEB */
 
   // debug and stuff
   strcpy(vertDebugStr, "");
@@ -121,7 +136,7 @@ void updateDrawFrame(void) {
 }
 
 int main(void) {
-  SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+  // SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   InitWindow(screenSize.x, screenSize.y, "Rescue the vampire");
 
   // loading screen
